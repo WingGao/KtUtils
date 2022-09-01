@@ -1,4 +1,4 @@
-package net.wingao.kt
+package com.github.winggao.kt
 
 import com.alibaba.fastjson.JSON
 import org.junit.jupiter.api.Test

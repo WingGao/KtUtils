@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil
 import com.baomidou.mybatisplus.core.conditions.SharedString
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils
 import com.baomidou.mybatisplus.core.toolkit.StringPool
+import com.baomidou.mybatisplus.extension.kotlin.KtQueryChainWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 
 private fun getSqlSelectField(q: KtQueryWrapper<*>): SharedString {

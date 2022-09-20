@@ -1,45 +1,50 @@
+import org.gradle.kotlin.dsl.*;
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
-    `maven-publish`
+    val ktVersion = Constants.kotlinVersion
+    id("org.jetbrains.kotlin.plugin.spring") version ktVersion apply false
+    kotlin("jvm") version ktVersion apply false
+    kotlin("plugin.serialization") version ktVersion apply false
+    kotlin("plugin.allopen") version ktVersion apply false
 }
-
-group = "com.github.WingGao"
-version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+    mavenLocal()
+    Constants.mavenRepos.forEach { val mv = maven(it);mv.isAllowInsecureProtocol = true }
 }
 
-dependencies {
-    testImplementation(kotlin("test"))
-}
+subprojects {
+    group = "com.github.WingGao"
 
-tasks.test {
-    useJUnitPlatform()
-}
+    repositories {
+        mavenLocal()
+        Constants.mavenRepos.forEach { val mv = maven(it);mv.isAllowInsecureProtocol = true }
+    }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
+    apply {
+        plugin("kotlin")
+        plugin("maven-publish")
+    }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+    dependencies {
+        loadShareLib(this)
+    }
+
+    tasks {
+        withType<KotlinCompile> {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
+
+
+    configure<PublishingExtension> {
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["java"])
+            }
         }
     }
 }
-
-
-// 常用依赖
-fun addDep(proj: Project) {
-    val addImp = { x: Any -> proj.dependencies.add("implementation", x) }
-    //
-    addImp("com.alibaba:fastjson:1.2.83")
-    //kotlin
-    addImp(proj.dependencies.kotlin("reflect"))
-}
-
-addDep(project)

@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     val ktVersion = Constants.kotlinVersion
     id("org.jetbrains.kotlin.plugin.spring") version ktVersion apply false
+    `java-library`
     kotlin("jvm") version ktVersion apply false
     kotlin("plugin.serialization") version ktVersion apply false
     kotlin("plugin.allopen") version ktVersion apply false
@@ -28,6 +29,10 @@ subprojects {
     }
 
     dependencies {
+//        testImplementation(kotlin("test"))
+//        testImplementation(kotlin("test-junit5"))
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
         loadShareLib(this)
     }
 
@@ -36,6 +41,9 @@ subprojects {
             kotlinOptions {
                 jvmTarget = "1.8"
             }
+        }
+        test {
+            useJUnitPlatform()
         }
     }
 

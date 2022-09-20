@@ -29,8 +29,8 @@ subprojects {
     }
 
     dependencies {
-//        testImplementation(kotlin("test"))
-//        testImplementation(kotlin("test-junit5"))
+        testImplementation(kotlin("test"))
+        testImplementation(kotlin("test-junit5"))
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
         loadShareLib(this)
@@ -44,6 +44,17 @@ subprojects {
         }
         test {
             useJUnitPlatform()
+        }
+        register("copyLocal") { //将各个脚本复制到build/wjar
+            dependsOn("build")
+            doLast {
+                val outDir = file("../build/wjar")
+                println("copyLocal ==> $outDir")
+                copy {
+                    from(files("build/libs/"))
+                    into(outDir)
+                }
+            }
         }
     }
 

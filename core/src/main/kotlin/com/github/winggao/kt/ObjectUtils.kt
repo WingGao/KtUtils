@@ -1,6 +1,7 @@
 package com.github.winggao.kt
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty
 
 object ObjectUtils {
@@ -19,5 +20,30 @@ object ObjectUtils {
 //            }
         }
         return out
+    }
+
+    /**
+     * 将指定fields从src拷贝至dest
+     */
+    fun <S> copyFields(src: S, dest: S, fields: Collection<KMutableProperty1<S, *>>): S {
+        fields.forEach { f ->
+            f as KMutableProperty1<S, Any?>
+            val v = f.get(src)
+            f.set(dest, v)
+        }
+        return dest
+    }
+
+    /**
+     * 有条件的将指定fields从src拷贝至dest
+     */
+    fun <S> copyFieldsFilter(src: S, dest: S, fields: Map<KMutableProperty1<S, *>, (srcV: Any?, desV: Any?) -> Boolean>): S {
+        fields.forEach { f, check ->
+            f as KMutableProperty1<S, Any?>
+            val v = f.get(src)
+            val dv = f.get(dest)
+            if (check(v, dv)) f.set(dest, v)
+        }
+        return dest
     }
 }

@@ -15,8 +15,11 @@ object Constants {
 
     const val kotlinVersion = "1.7.10"
 
+    const val springVersion = "1.5.22.RELEASE"
 
     const val mybatisPlusVersion = "3.4.3.1"
+    const val mybatisPlusJoinVersion = "1.2.4" // https://github.com/yulichang/mybatis-plus-join
+
     const val hutoolVersion = "5.7.8"
     const val fastjsonVersion = "1.2.75"
 

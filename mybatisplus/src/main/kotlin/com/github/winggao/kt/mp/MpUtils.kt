@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.SharedString
 import com.baomidou.mybatisplus.core.metadata.IPage
 import com.baomidou.mybatisplus.core.metadata.OrderItem
 import com.baomidou.mybatisplus.core.toolkit.StringPool
+import com.baomidou.mybatisplus.extension.conditions.query.ChainQuery
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.github.winggao.kt.request.WPage
@@ -23,6 +24,12 @@ fun <T : Any> KtQueryWrapper<T>.select(vararg columns: String): KtQueryWrapper<T
         getSqlSelectField(this).stringValue = columns.joinToString(StringPool.COMMA)
     }
     return this
+}
+
+fun <T> ChainQuery<T>.oneOrNull(): T? {
+    val out = this.oneOpt()
+    if (out.isPresent) return out.get()
+    return null
 }
 
 //region wpage

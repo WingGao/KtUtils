@@ -9,4 +9,6 @@ dependencies {
     //mybatis
     implementation("com.baomidou:mybatis-plus:${Constants.mybatisPlusVersion}")
     implementation("com.github.yulichang:mybatis-plus-join:${Constants.mybatisPlusJoinVersion}")
+    //mongo
+    implementation("dev.morphia.morphia:core:1.6.1")
 }

@@ -24,7 +24,7 @@ class WingMgKtQuery<T : MongoEntity> {
 
     fun isNotNull(column: KProperty<*>): WingMgKtQuery<T> {
         raw.field(toColumnName(column)).also {
-            it.exists().and()
+            it.exists()
             it.notEqual(null)
         }
         return this

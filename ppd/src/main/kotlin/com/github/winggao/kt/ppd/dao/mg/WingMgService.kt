@@ -112,4 +112,8 @@ open class WingMgService<T : MongoEntity> {
         res.records = items
         return res
     }
+
+    fun createAggregation(): WingAggregationPipeline {
+        return WingAggregationPipeline(store, store.getCollection(entityClass), entityClass)
+    }
 }

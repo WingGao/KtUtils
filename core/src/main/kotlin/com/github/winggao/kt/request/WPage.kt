@@ -7,6 +7,10 @@ package com.github.winggao.kt.request
  */
 open class WPage {
     var size: Long? = null
+
+    /**
+     * 当前页，从1开始
+     */
     var current: Long = 1
     var total: Long? = null
     var orders: List<PageOrderItem>? = null

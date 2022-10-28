@@ -26,6 +26,20 @@ class WingMgKtQuery<T : MongoEntity> {
         return this
     }
 
+    /**
+     * field不存在或为null
+     */
+    fun isNull(column: KProperty<*>): WingMgKtQuery<T> {
+        val f = toColumnName(column)
+        raw.field(f).also {
+            it.equal(null)
+        }
+        return this
+    }
+
+    /**
+     * field存在且不为null
+     */
     fun isNotNull(column: KProperty<*>): WingMgKtQuery<T> {
         raw.field(toColumnName(column)).also {
             it.exists()

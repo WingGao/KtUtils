@@ -67,7 +67,7 @@ open class WingMgService<T : MongoEntity> {
             batch.forEach {
                 if (it.id == null) it.createdAt = Date()
             }
-            store.save(entityList)
+            store.save(batch)
         }
     }
 

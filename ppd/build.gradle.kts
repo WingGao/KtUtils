@@ -4,6 +4,7 @@ dependencies {
 
     //spring
     implementation("org.springframework.boot:spring-boot-starter:${Constants.springVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-web:${Constants.springVersion}")
     implementation("org.springframework.boot:spring-boot-starter-jdbc:${Constants.springVersion}")
 
     //mybatis

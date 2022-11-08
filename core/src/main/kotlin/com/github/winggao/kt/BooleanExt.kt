@@ -16,3 +16,11 @@ fun Boolean?.doNotNull(yesAct: () -> Unit, noAct: () -> Unit): Boolean? {
     if (this == null) return null
     return this!!.doNotNull(yesAct, noAct)
 }
+
+fun Boolean?.doNull(yesAct: () -> Unit, elseAct: () -> Unit): Boolean? {
+    when (this) {
+        true -> yesAct()
+        else -> elseAct()
+    }
+    return this
+}

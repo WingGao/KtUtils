@@ -7,13 +7,10 @@ import org.gradle.kotlin.dsl.*
 
 object Constants {
     // kotlin相关
-    //1.6.20 只能升级到这个，不然test跑步起来
-//    const val kotlinVersion = "1.6.20"
-    const val datetimeVersion = "0.3.2" // https://github.com/Kotlin/kotlinx-datetime/releases
-    const val ktCoroutinesVersion = "1.6.4" //https://github.com/Kotlin/kotlinx.coroutines/releases
     const val ktSerializationVersion = "1.3.3"
 
-    const val kotlinVersion = "1.7.10"
+    const val ktCoroutinesVersion = "1.6.4" //https://github.com/Kotlin/kotlinx.coroutines/releases
+    const val kotlinVersion = "1.7.21"
 
     const val springVersion = "1.5.22.RELEASE"
 
@@ -53,10 +50,10 @@ fun loadShareLib(scope: DependencyHandlerScope, useApi: Boolean = false) {
         else scope.add("implementation", v)
     }
     scope.run {
-        //kt
         //kotlin
         implementation(kotlin("stdlib-jdk8"))
         implementation(kotlin("reflect"))
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Constants.ktCoroutinesVersion}")
 
         implementation("cn.hutool:hutool-all:${Constants.hutoolVersion}")
         implementation("com.alibaba:fastjson:${Constants.fastjsonVersion}")

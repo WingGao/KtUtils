@@ -57,6 +57,7 @@ fun loadShareLib(scope: DependencyHandlerScope, useApi: Boolean = false) {
 
         implementation("cn.hutool:hutool-all:${Constants.hutoolVersion}")
         implementation("com.alibaba:fastjson:${Constants.fastjsonVersion}")
+        implementation("org.slf4j:slf4j-api:1.7.36")
     }
 }
 

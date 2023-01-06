@@ -1,6 +1,7 @@
 package com.github.winggao.kt.mp
 
 import cn.hutool.core.util.ReflectUtil
+import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
 import com.baomidou.mybatisplus.core.conditions.SharedString
 import com.baomidou.mybatisplus.core.metadata.IPage
 import com.baomidou.mybatisplus.core.metadata.OrderItem
@@ -23,6 +24,7 @@ import kotlin.reflect.full.memberProperties
 private fun getSqlSelectField(q: KtQueryWrapper<*>): SharedString {
     return ReflectUtil.getFieldValue(q, "sqlSelect") as SharedString
 }
+
 
 /**
  * KtQueryWrapper 支持String列名

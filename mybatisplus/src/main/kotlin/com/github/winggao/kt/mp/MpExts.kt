@@ -22,12 +22,19 @@ fun <T, R, Children : AbstractWrapper<T, R, Children>, G> AbstractWrapper<T, R, 
 
 
 fun <T> ChainQuery<T>.chunk(chunkSize: Long, action: (IPage<T>) -> Unit) {
+    return chunkBreak(chunkSize) { action(it);true }
+}
+
+/**
+ * @param action: true=继续, false=停止
+ */
+fun <T> ChainQuery<T>.chunkBreak(chunkSize: Long, action: (IPage<T>) -> Boolean) {
     if (chunkSize <= 0) throw Error("chunkSize必须大于0")
     var page = Page<T>(0, chunkSize)
     page.isSearchCount = false //不查询count
     while (true) {
         val res = this.page(page)
-        action(res)
+        if (!action(res)) break
         if (res.records.size < chunkSize) break
         page = Page<T>(res.current + 1, chunkSize) //下一页
     }

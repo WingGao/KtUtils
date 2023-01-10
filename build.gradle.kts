@@ -1,5 +1,6 @@
 import org.gradle.kotlin.dsl.*;
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 plugins {
     val ktVersion = Constants.kotlinVersion
@@ -8,6 +9,7 @@ plugins {
     kotlin("jvm") version ktVersion apply false
     kotlin("plugin.serialization") version ktVersion apply false
     kotlin("plugin.allopen") version ktVersion apply false
+    id("signing")
 }
 
 repositories {
@@ -17,6 +19,7 @@ repositories {
 
 subprojects {
     group = "com.github.WingGao"
+    version = "0.0.1-SNAPSHOT"
 
     repositories {
         mavenLocal()
@@ -26,6 +29,7 @@ subprojects {
     apply {
         plugin("kotlin")
         plugin("maven-publish")
+        plugin("signing")
     }
 
     dependencies {
@@ -60,10 +64,29 @@ subprojects {
 
 
     configure<PublishingExtension> {
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+
+        repositories {
+            maven {
+                isAllowInsecureProtocol = true
+                url = uri(properties.getOrDefault("repo","") as String)
+                credentials {
+                    username = properties.get("mUser") as String?
+                    password = properties.get("mPwd") as String?
+                }
+            }
+        }
         publications {
-            create<MavenPublication>("maven") {
+            create<MavenPublication>("ppd") {
                 from(components["java"])
             }
         }
     }
+    configure<SigningExtension> {
+//        signing {
+//            sign(publishing.publications["maven"])
+//        }
+    }
 }
+

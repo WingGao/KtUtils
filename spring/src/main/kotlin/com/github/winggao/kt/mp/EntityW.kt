@@ -1,4 +1,4 @@
-package com.github.winggao.kt.ppd.dao
+package com.github.winggao.kt.mp
 
 import com.alibaba.fastjson.annotation.JSONCreator
 import com.alibaba.fastjson.annotation.JSONField
@@ -32,14 +32,14 @@ open class EntityW : Serializable {
      * 忽略更新，使用mysql的自动更新策略
      */
     @TableField(value = "updatetime", updateStrategy = FieldStrategy.NEVER, insertStrategy = FieldStrategy.NEVER)
-    var updatetime: Date? = null
+    open var updatetime: Date? = null
 
     /**
      * 逻辑删除(1:保留,0:删除)
      */
     @TableLogic
     @JSONField(serialize = false)
-    var isactive: Boolean? = null
+    open var isactive: Boolean? = null
 
     fun fromJson(s: String): Any {
         TODO("Not yet implemented")

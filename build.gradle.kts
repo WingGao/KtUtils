@@ -50,7 +50,7 @@ subprojects {
             useJUnitPlatform()
         }
         register("copyLocal") { //将各个脚本复制到build/wjar
-            dependsOn("build")
+            dependsOn("assemble")
             doLast {
                 val outDir = file("../build/wjar")
                 println("copyLocal ==> $outDir")

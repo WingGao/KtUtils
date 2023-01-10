@@ -1,5 +1,6 @@
-package com.github.winggao.kt.ppd.dao
+package com.github.winggao.kt.mp
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit
@@ -46,6 +47,10 @@ open class ServiceImplW<M : MPJBaseMapper<T>, T : EntityW> : MPJBaseServiceImpl<
     // 注意！必须是open
     open fun getByBizId(bizId: Any): T? {
         return query().eq(bizKey.column, bizId).one()
+    }
+
+    open fun removeByBizId(bizId: Any): Boolean {
+        return remove(QueryWrapper<T>().eq(bizKey.column, bizId))
     }
 
     /**

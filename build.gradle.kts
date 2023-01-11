@@ -18,8 +18,8 @@ repositories {
 }
 
 subprojects {
-    group = "com.github.WingGao"
-    version = "0.0.1-SNAPSHOT"
+    group = "com.github.WingGao.KtUtils"
+    version = "0.0.3-SNAPSHOT"
 
     repositories {
         mavenLocal()
@@ -70,7 +70,7 @@ subprojects {
         repositories {
             maven {
                 isAllowInsecureProtocol = true
-                url = uri(properties.getOrDefault("repo","") as String)
+                url = uri(properties.getOrDefault("repo", "") as String)
                 credentials {
                     username = properties.get("mUser") as String?
                     password = properties.get("mPwd") as String?

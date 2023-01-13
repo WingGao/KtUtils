@@ -18,6 +18,18 @@ open class RangeTR<T, R : RangeTR<T, R>> : RangeT<T>() {
         this.end = e
         return this as R
     }
+
+    open fun setLeft(b: T?, include: Boolean? = null): R {
+        this.begin = b
+        include?.let { this.includeLeft = it }
+        return this as R
+    }
+
+    open fun setRight(e: T?, include: Boolean? = null): R {
+        this.end = e
+        include?.let { this.includeRight = it }
+        return this as R
+    }
 }
 
 class RangeInt : RangeTR<Int, RangeInt>() {

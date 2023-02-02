@@ -7,6 +7,6 @@ package com.github.winggao.kt.mp
  * Date: 2021/5/14
  */
 @MustBeDocumented
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS)
 annotation class WingTableBizKey

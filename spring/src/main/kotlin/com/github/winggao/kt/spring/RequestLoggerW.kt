@@ -26,7 +26,15 @@ import javax.servlet.http.HttpServletResponse
 object RequestLoggerW {
     val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun createFilter(ctxFilter: (HttpServletRequestWrapper, HttpServletResponse) -> Boolean, contentLengthLimit: Int = 500): OncePerRequestFilter {
+    /**
+     * 创建打印filter
+     * @param logHeaders 打印header，emptyList(): 表示全部，listOf(x)表示只打印x
+     */
+    fun createFilter(
+        ctxFilter: (HttpServletRequestWrapper, HttpServletResponse) -> Boolean,
+        contentLengthLimit: Int = 500,
+        logHeaders: List<String>? = null
+    ): OncePerRequestFilter {
         return object : OncePerRequestFilter() {
             override fun doFilterInternal(sReq: HttpServletRequest, sResp: HttpServletResponse, p2: FilterChain) {
                 val req = if (sReq is ContentCachingRequestWrapper) sReq else ContentCachingRequestWrapper(sReq)
@@ -34,10 +42,19 @@ object RequestLoggerW {
                 val needLog = ctxFilter(req, sResp)
                 if (needLog) {
                     val sb = StringBuilder("Request: ${req.method.uppercase()} ${req.requestURI} contentLength=${req.contentLength} start")
+                    if (logHeaders != null) {
+                        sb.append("\nHeaders: ")
+                        if (logHeaders.isEmpty()) { //打印全部header
+                            req.headerNames.asSequence().forEach { sb.append(it, "=", req.getHeader(it), " ‖ ") }
+                        } else {
+                            logHeaders.forEach { val v = req.getHeader(it); if (!v.isNullOrEmpty()) sb.append(it, "=", v, " ‖ ") }
+                        }
+                    }
                     // 获取请求
-                    req.queryString?.let { if (it.isNotEmpty()) sb.append("\nquery: ", it) }
+                    req.queryString?.let { if (it.isNotEmpty()) sb.append("\nQuery: ", it) }
                     if (req.contentLength > 0 && req.contentLength <= contentLengthLimit) {
-                        sb.append("\nbody: ", req.reader.readText())
+                        req.getParameter("_") //提前解析body
+                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString(), req.reader.readText())
                         req.reader.mark(0)
                         req.reader.reset()
                         // 重置inputStream

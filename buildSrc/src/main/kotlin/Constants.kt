@@ -17,7 +17,7 @@ object Constants {
     const val mybatisPlusVersion = "3.5.3.1"
     const val mybatisPlusJoinVersion = "1.4.2" // https://github.com/yulichang/mybatis-plus-join
 
-    const val hutoolVersion = "5.7.8"
+    const val hutoolVersion = "5.8.11"
     const val fastjsonVersion = "1.2.75"
 
     const val swagger = "2.9.2"

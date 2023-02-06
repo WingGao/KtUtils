@@ -54,7 +54,7 @@ object RequestLoggerW {
                     req.queryString?.let { if (it.isNotEmpty()) sb.append("\nQuery: ", it) }
                     if (req.contentLength > 0 && req.contentLength <= contentLengthLimit) {
                         req.getParameter("_") //提前解析body
-                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString(), req.reader.readText())
+                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString().replace("\n"," "), req.reader.readText())
                         req.reader.mark(0)
                         req.reader.reset()
                         // 重置inputStream

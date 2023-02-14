@@ -37,7 +37,7 @@ open class EntityW : Serializable {
     /**
      * 逻辑删除(1:保留,0:删除)
      */
-    @TableLogic
+    @TableLogic(value = "1", delval = "0")
     @JSONField(serialize = false)
     open var isactive: Boolean? = null
 

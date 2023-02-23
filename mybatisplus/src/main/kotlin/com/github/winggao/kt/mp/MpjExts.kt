@@ -35,6 +35,7 @@ fun <E : Any, R> MPJJoinService<E>.selectJoinListPageChunk(chunkSize: Long, outC
     page.isSearchCount = false //不查询count
     while (true) {
         val res = this.selectJoinListPage(page, outClz, wrapper)
+        if (res.records.isEmpty()) break
         if (!action(res)) break
         if (res.records.size < chunkSize) break
         page = Page<R>(res.current + 1, chunkSize) //下一页

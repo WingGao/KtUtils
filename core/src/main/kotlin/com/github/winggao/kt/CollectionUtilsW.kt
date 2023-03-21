@@ -31,3 +31,9 @@ fun <T, R> Array<out T>.filterMap(predicate: (T) -> Boolean, trans: (T) -> R): A
     }
     return out
 }
+
+fun <T> Collection<T>?.doNotNullOrEmpty(block: (Collection<T>) -> Unit): Boolean {
+    if (this.isNullOrEmpty()) return false
+    block(this)
+    return true
+}

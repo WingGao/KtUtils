@@ -19,7 +19,7 @@ repositories {
 
 subprojects {
     group = "com.github.WingGao.KtUtils"
-    version = "0.0.9-SNAPSHOT"
+    version = "0.0.10-SNAPSHOT"
 
     repositories {
         mavenLocal()

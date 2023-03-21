@@ -26,3 +26,9 @@ object StringUtilsW {
         } as T?
     }
 }
+
+fun String?.doNotNullOrEmpty(block: (String) -> Unit): Boolean {
+    if (this.isNullOrEmpty()) return false
+    block(this)
+    return true
+}

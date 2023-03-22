@@ -5,6 +5,7 @@ import cn.hutool.core.util.ReferenceUtil
 import cn.hutool.core.util.ReflectUtil
 import org.apache.catalina.connector.CoyoteInputStream
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.ContentCachingRequestWrapper
 import org.springframework.web.util.ContentCachingResponseWrapper
@@ -54,7 +55,7 @@ object RequestLoggerW {
                     req.queryString?.let { if (it.isNotEmpty()) sb.append("\nQuery: ", it) }
                     if (req.contentLength > 0 && req.contentLength <= contentLengthLimit) {
                         req.getParameter("_") //提前解析body
-                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString().replace("\n"," "), req.reader.readText())
+                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString().replace("\n", " "), req.reader.readText())
                         req.reader.mark(0)
                         req.reader.reset()
                         // 重置inputStream
@@ -84,7 +85,8 @@ object RequestLoggerW {
                     logger.info(sb.toString())
                     val rep = if (sResp is ContentCachingResponseWrapper) sResp else ContentCachingResponseWrapper(sResp)
                     p2.doFilter(req, rep)
-                    logger.info("Response: ${req.requestURI} ${sResp.status} end duration=${Date().time - start.time}ms\nbody: ${rep.contentAsByteArray.decodeToString()}")
+                    val logBody = if (rep.contentType == MediaType.APPLICATION_OCTET_STREAM_VALUE) "二进制内容" else rep.contentAsByteArray.decodeToString()
+                    logger.info("Response: ${req.requestURI} ${sResp.status} end duration=${Date().time - start.time}ms\nbody: ${logBody}")
                     rep.copyBodyToResponse()
                 } else {
                     p2.doFilter(req, sResp)

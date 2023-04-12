@@ -25,6 +25,13 @@ object StringUtilsW {
             else -> throw Exception("目前不支持 $clz")
         } as T?
     }
+
+    fun <T> tryConvertTo(s: String?, clz: Class<T>): Pair<T?, Boolean> {
+        kotlin.runCatching {
+            return Pair(convertTo(s, clz), true)
+        }
+        return Pair(null, false)
+    }
 }
 
 fun String?.doNotNullOrEmpty(block: (String) -> Unit): Boolean {

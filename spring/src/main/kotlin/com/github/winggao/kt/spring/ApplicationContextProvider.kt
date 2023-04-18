@@ -17,5 +17,10 @@ class ApplicationContextProvider : ApplicationContextAware {
         }
 
         private var applicationContext: ApplicationContext? = null
+
+        @JvmStatic
+        fun <T : Any> getBean(clazz: Class<T>): T {
+            return getApplicationContext().getBean(clazz)
+        }
     }
 }

@@ -38,7 +38,7 @@ object RequestLoggerW {
     ): OncePerRequestFilter {
         return object : OncePerRequestFilter() {
             override fun doFilterInternal(sReq: HttpServletRequest, sResp: HttpServletResponse, p2: FilterChain) {
-                val req = if (sReq is ContentCachingRequestWrapper) sReq else ContentCachingRequestWrapper(sReq)
+                val req = if (sReq is ContentCachingRequestWrapperUtf8) sReq else ContentCachingRequestWrapperUtf8(sReq)
                 val start = Date()
                 val needLog = ctxFilter(req, sResp)
                 if (needLog) {
@@ -55,7 +55,11 @@ object RequestLoggerW {
                     req.queryString?.let { if (it.isNotEmpty()) sb.append("\nQuery: ", it) }
                     if (req.contentLength > 0 && req.contentLength <= contentLengthLimit) {
                         req.getParameter("_") //提前解析body
-                        sb.append("\nBody: ", req.contentAsByteArray.decodeToString().replace("\n", " "), req.reader.readText())
+                        val reg = Regex("\\s")
+                        sb.append(
+                            "\nBody: ", reg.replace(req.contentAsByteArray.decodeToString(), " "),
+                            reg.replace(req.reader.readText(), " ")
+                        )
                         req.reader.mark(0)
                         req.reader.reset()
                         // 重置inputStream
@@ -93,6 +97,13 @@ object RequestLoggerW {
                 }
             }
         }
+    }
+}
+
+class ContentCachingRequestWrapperUtf8(request: HttpServletRequest) : ContentCachingRequestWrapper(request) {
+    override fun getCharacterEncoding(): String {
+        val c = super.getCharacterEncoding()
+        return if (c == "ISO-8859-1") Charsets.UTF_8.name() else c
     }
 }
 

@@ -4,6 +4,7 @@ import cn.hutool.core.io.IoUtil
 import cn.hutool.core.util.ReferenceUtil
 import cn.hutool.core.util.ReflectUtil
 import org.apache.catalina.connector.CoyoteInputStream
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.web.filter.OncePerRequestFilter
@@ -25,7 +26,7 @@ import javax.servlet.http.HttpServletResponse
  * 打印请求信息
  */
 object RequestLoggerW {
-    val logger = LoggerFactory.getLogger(this.javaClass)
+    val defaultLogger = LoggerFactory.getLogger(this.javaClass)
 
     /**
      * 创建打印filter
@@ -34,7 +35,8 @@ object RequestLoggerW {
     fun createFilter(
         ctxFilter: (HttpServletRequestWrapper, HttpServletResponse) -> Boolean,
         contentLengthLimit: Int = 500,
-        logHeaders: List<String>? = null
+        logHeaders: List<String>? = null,
+        logger: Logger = defaultLogger
     ): OncePerRequestFilter {
         return object : OncePerRequestFilter() {
             override fun doFilterInternal(sReq: HttpServletRequest, sResp: HttpServletResponse, p2: FilterChain) {

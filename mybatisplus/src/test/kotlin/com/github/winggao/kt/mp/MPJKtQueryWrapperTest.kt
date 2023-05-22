@@ -13,6 +13,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder
 import org.apache.ibatis.transaction.TransactionFactory
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import java.io.PrintWriter
 import java.sql.DriverManager
@@ -22,9 +23,9 @@ import javax.sql.DataSource
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @MybatisPlusTest
 open class MPJKtQueryWrapperTest {
-    fun setup1(){
+    fun setup1() {
         val jc = DriverManager.getConnection("jdbc:sqlite::memory:")
-        val dataSource: DataSource = object :DataSource{
+        val dataSource: DataSource = object : DataSource {
             var pw = PrintWriter(System.out)
             override fun getConnection(): java.sql.Connection {
                 return jc
@@ -43,7 +44,7 @@ open class MPJKtQueryWrapperTest {
             }
 
             override fun setLogWriter(out: PrintWriter?) {
-                if(out !=null) pw=out
+                if (out != null) pw = out
             }
 
             override fun setLoginTimeout(seconds: Int) {
@@ -76,6 +77,10 @@ open class MPJKtQueryWrapperTest {
 //            name = "test"
 //        })
     }
+
+    @Autowired
+    lateinit var t1Mapper: TestEntity1Mapper
+
     @Test
     fun testLeftJoin() {
 //        setup()
@@ -83,7 +88,9 @@ open class MPJKtQueryWrapperTest {
             it.eq(TestEntity::id, TestEntity2::id)
         }).where {
             it.eq(TestEntity::id, 1L)
-        }.ktSelect(TestEntityFull::class)
+        }
+//            .ktSelect(TestEntityFull::class)
+//        t1Mapper.selectJoinList(TestEntityFull::class.java, ktQ)
         println(ktQ.sqlSelect)
     }
 }

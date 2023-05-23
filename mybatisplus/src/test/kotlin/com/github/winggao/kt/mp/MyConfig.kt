@@ -14,7 +14,7 @@ open class MyConfig {
     open fun dataSource(): DataSource? {
         val dataSource = DriverManagerDataSource()
         dataSource.setDriverClassName("org.sqlite.JDBC")
-        dataSource.url = "jdbc:sqlite::memory:hello"
+        dataSource.url = "jdbc:sqlite::memory:"
         return dataSource
     }
 }

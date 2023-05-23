@@ -9,7 +9,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMembers
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.javaType
+import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.jvmName
 
 /***
  * 用于支持Kotlin的MPJQueryWrapper
@@ -55,9 +59,13 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         }
     }
 
-    fun columnName(p: KProperty1<*, *>, withTable: Boolean = true): String {
+    fun columnName(p: KProperty1<*, *>, withTable: Boolean = true, colSubScope: String? = null): String {
         val propInfo = propCache[p]!!
-        return if (withTable) "`${propInfo.table.tableName}`.`${propInfo.column}`" else "`${propInfo.column}`"
+        var col = if (withTable) {
+            "${tableAlias[propInfo.parent.java]}.${propInfo.column}" //取别名
+        } else "${propInfo.column}"
+        if (colSubScope != null) return "$col AS `$colSubScope.${propInfo.column}`"
+        return col
     }
 
     fun valueToStr(v: Any): String {
@@ -97,13 +105,46 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         return this
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun ktSelect(entity: KClass<*>): MPJKtQueryWrapper<T> {
         val baseFieldMap = this.baseKClass.memberProperties.map { it.name to it }.toMap()
         entity.memberProperties.forEach {
-            //先匹配底表
+            //先判断在不在join表里
+            val jClz = it.returnType.javaType
+            if (jClz == null) return@forEach
+            val mKC = it.returnType.classifier as KClass<*>
+            val alias = tableAlias[jClz]
+            if (alias != null) { //整个prop都是这个表
+                ktSelect(mKC.memberProperties, subScope = it.name)
+                return@forEach
+            }
+            val mpjr = it.javaField!!.getAnnotation(MPJResultFieldJ::class.java)
+            if (mpjr != null) {
+                if (mpjr.table.java != Object::class.java) {
+                    val targetTableKC = mpjr.table
+                    ktSelect(mKC.memberProperties, targetTable = targetTableKC, subScope = it.name)
+                }
+            }
+            //匹配底表
             if (it.name in baseFieldMap) {
                 this.select(columnName(baseFieldMap[it.name]!!))
             }
+        }
+        return this
+    }
+
+    fun ktSelect(
+        props: Collection<KProperty1<*, *>>,
+        targetTable: KClass<*>? = null,
+        subScope: String? = null
+    ): MPJKtQueryWrapper<T> {
+        var propMap = HashMap<String, KPropInfo>()
+        if (targetTable != null) { //映射到员表的column
+            propMap = HashMap(targetTable.memberProperties.map { it.name to propCache[it]!! }.toMap())
+        }
+        props.forEach {
+            val tProp = propMap[it.name]?.kProp ?: it
+            this.select(columnName(tProp as KProperty1<*, *>, colSubScope = subScope))
         }
         return this
     }

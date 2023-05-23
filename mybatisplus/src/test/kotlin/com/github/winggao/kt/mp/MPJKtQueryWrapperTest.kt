@@ -86,10 +86,12 @@ open class MPJKtQueryWrapperTest {
 //        setup()
         val ktQ = MPJKtQueryWrapper(TestEntity::class).leftJoin(TestEntity2::class, onMS = {
             it.eq(TestEntity::id, TestEntity2::id)
+        }).leftJoin(TestEntity3::class, onMS = {
+            it.eq(TestEntity::id, TestEntity3::id)
         }).where {
             it.eq(TestEntity::id, 1L)
         }
-//            .ktSelect(TestEntityFull::class)
+            .ktSelect(TestEntityFull::class)
 //        t1Mapper.selectJoinList(TestEntityFull::class.java, ktQ)
         println(ktQ.sqlSelect)
     }

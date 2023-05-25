@@ -8,4 +8,5 @@ import java.lang.annotation.Target;
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 public @interface MPJResultFieldJ {
     Class<?> table() default Object.class;
+    boolean ignore() default false;
 }

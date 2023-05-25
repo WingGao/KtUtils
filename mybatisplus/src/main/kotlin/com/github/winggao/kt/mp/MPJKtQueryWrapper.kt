@@ -3,17 +3,13 @@ package com.github.winggao.kt.mp
 import com.baomidou.mybatisplus.core.enums.SqlKeyword
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper
-import com.github.winggao.kt.reflect.ReflectExt
 import com.github.yulichang.query.MPJQueryWrapper
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMembers
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.javaType
 import kotlin.reflect.jvm.javaField
-import kotlin.reflect.jvm.jvmName
 
 /***
  * 用于支持Kotlin的MPJQueryWrapper
@@ -59,8 +55,17 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         }
     }
 
-    fun columnName(p: KProperty1<*, *>, withTable: Boolean = true, colSubScope: String? = null): String {
-        val propInfo = propCache[p]!!
+    fun columnName(
+        p: KProperty1<*, *>,
+        withTable: Boolean = true,
+        colSubScope: String? = null,
+        checkIgnore: Boolean = false
+    ): String {
+        val propInfo = propCache[p]
+        if (propInfo == null) {
+            if (checkIgnore) return ""
+            return p.name
+        }
         var col = if (withTable) {
             "${tableAlias[propInfo.parent.java]}.${propInfo.column}" //取别名
         } else "${propInfo.column}"
@@ -71,7 +76,8 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
     fun valueToStr(v: Any): String {
         return when (v) {
             is KProperty1<*, *> -> columnName(v)
-            else -> v.toString()
+            is Collection<*> -> inExpression(v).sqlSegment
+            else -> formatParam(null, v)
         }
     }
 
@@ -90,7 +96,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         if (table.isWithLogicDelete) sb.append("${tAlias}.${table.logicDeleteFieldInfo.column}=${table.logicDeleteFieldInfo.logicNotDeleteValue} AND ")
         cmp.conditions.forEachIndexed { index, c ->
             if (index > 0) sb.append(" AND ")
-            sb.append("${columnName(c.column)}${c.op.sqlSegment}${valueToStr(c.value)}")
+            sb.append("${columnName(c.column)} ${c.op.sqlSegment} ${valueToStr(c.value)}")
         }
         this.leftJoin(sb.toString())
         return this
@@ -100,7 +106,8 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         val cmp = MPJCompare(this)
         block(cmp)
         cmp.conditions.forEach { c ->
-            this.addCondition(true, columnName(c.column), c.op, c.value)
+            this.appendSqlSegments(columnToSqlSegment(columnName(c.column)), c.op, { valueToStr(c.value) })
+//            this.addCondition(true, columnName(c.column), c.op, valueToStr(c.value))
         }
         return this
     }
@@ -119,7 +126,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
                 return@forEach
             }
             val mpjr = it.javaField!!.getAnnotation(MPJResultFieldJ::class.java)
-            if (mpjr != null) {
+            if (mpjr != null && !mpjr.ignore) {
                 if (mpjr.table.java != Object::class.java) {
                     val targetTableKC = mpjr.table
                     ktSelect(mKC.memberProperties, targetTable = targetTableKC, subScope = it.name)
@@ -127,7 +134,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
             }
             //匹配底表
             if (it.name in baseFieldMap) {
-                this.select(columnName(baseFieldMap[it.name]!!))
+                ktSelect(baseFieldMap[it.name]!!, "")
             }
         }
         return this
@@ -149,6 +156,38 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         return this
     }
 
+    /**
+     * 核心筛选
+     * @param 数据导出到prop
+     * @param srcColumn 源数据库的column
+     * @param checkExist 是否检查TableField
+     */
+    fun ktSelect(prop: KProperty1<*, *>, srcColumn: String, checkExist: Boolean = true): MPJKtQueryWrapper<T> {
+        if (checkExist) {
+            val propInfo = propCache[prop] ?: return this
+        }
+        if (srcColumn.isNullOrEmpty()) this.select(columnName(prop))
+        else this.select("$srcColumn AS ${columnName(prop)}")
+        return this
+    }
+
+    fun ktSelect(prop: KProperty1<*, *>, srcColumnProp: KProperty1<*, *>): MPJKtQueryWrapper<T> {
+        this.select("${columnName(srcColumnProp)} AS ${columnName(prop)}")
+        return this
+    }
+
+    fun groupBy(vararg props: KProperty1<*, *>): MPJKtQueryWrapper<T> {
+        props.forEach {
+            this.groupBy(columnName(it))
+        }
+        return this
+    }
+
+    fun orderByDesc(vararg props: KProperty1<*, *>): MPJKtQueryWrapper<T> {
+        this.orderByDesc(props.map { columnName(it) })
+        return this
+    }
+
     class KPropInfo(
         val kProp: KProperty<*>,
         val parent: KClass<*>,
@@ -166,10 +205,24 @@ class MPJCompare(val wrapper: MPJKtQueryWrapper<*>) {
         return this
     }
 
+    fun ge(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.GE, column, value))
+        return this
+    }
+
+    fun `in`(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.IN, column, value))
+        return this
+    }
+
     fun addCondition(column: KProperty<*>, sqlKeyword: SqlKeyword, v: Any): MPJCompare {
 //        wrapper.eq()
         return this
     }
 
-    class CompareItem<T, V>(val op: SqlKeyword, val column: KProperty1<T, V>, val value: Any)
+    class CompareItem<T, V>(val op: SqlKeyword, val column: KProperty1<T, V>, val value: Any) {
+        fun toSql(wrapper: MPJKtQueryWrapper<*>): String {
+            return "${wrapper.columnName(column)} ${op.sqlSegment} ${wrapper.valueToStr(value)}"
+        }
+    }
 }

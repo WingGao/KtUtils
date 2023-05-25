@@ -1,5 +1,6 @@
 package com.github.winggao.kt.mp
 
+import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableLogic
 import com.baomidou.mybatisplus.annotation.TableName
 import com.github.yulichang.base.MPJBaseMapper
@@ -10,6 +11,9 @@ import org.apache.ibatis.annotations.Mapper
 open class TestEntity {
     var id: Long? = null
     var name: String? = null
+
+    @TableField(exist = false)
+    var hide: Int? = null
 }
 
 @Mapper
@@ -51,6 +55,8 @@ class TestEntityFull : TestEntity() {
     @MPJResultFieldJ(table = TestEntity3::class)
     @MPJResultField(TestEntity3::class)
     var e3: E3? = null
+
+    var e4: String? = null
 
 
     class E3 {

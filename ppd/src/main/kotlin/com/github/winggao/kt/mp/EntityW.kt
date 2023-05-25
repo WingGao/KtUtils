@@ -53,4 +53,9 @@ open class EntityW : Serializable {
         inserttime = null
         updatetime = null
     }
+
+    fun removeUpdatetime() {
+        isactive = null
+        updatetime = null
+    }
 }

@@ -29,9 +29,11 @@ private fun getSqlSelectField(q: KtQueryWrapper<*>): SharedString {
 /**
  * KtQueryWrapper 支持String列名
  */
-fun <T : Any> KtQueryWrapper<T>.select(vararg columns: String): KtQueryWrapper<T> {
+fun <T : Any> KtQueryWrapper<T>.addSelect(vararg columns: String): KtQueryWrapper<T> {
     if (columns.isNotEmpty()) {
-        getSqlSelectField(this).stringValue = columns.joinToString(StringPool.COMMA)
+        val sh = getSqlSelectField(this)
+        if (sh.stringValue.isNullOrEmpty()) sh.stringValue = columns.joinToString(StringPool.COMMA)
+        else sh.stringValue += StringPool.COMMA + columns.joinToString(StringPool.COMMA)
     }
     return this
 }
@@ -99,7 +101,12 @@ object MpUtils {
      * @param dtoPropName 如果为null，则表示直接根据sqlTableAlias选择propNames；如果不为null，则表示选出的props属于dtoPropName
      * @param propNames 要选择的字段，为空则全部
      */
-    fun <C : Any> selectToPropSql(dtoPropName: String?, propTableClass: KClass<C>, sqlTableAlias: String, vararg propNames: KMutableProperty1<C, *>): String {
+    fun <C : Any> selectToPropSql(
+        dtoPropName: String?,
+        propTableClass: KClass<C>,
+        sqlTableAlias: String,
+        vararg propNames: KMutableProperty1<C, *>
+    ): String {
         val tableInfo = TableInfoHelper.getTableInfo(propTableClass.java) ?: return ""
         // 获取缓存
         var colMap = tableColumnMap[tableInfo.tableName]

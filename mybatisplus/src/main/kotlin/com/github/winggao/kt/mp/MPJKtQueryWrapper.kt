@@ -134,7 +134,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
             }
             //匹配底表
             if (it.name in baseFieldMap) {
-                ktSelect(baseFieldMap[it.name]!!, "")
+                ktSelect(baseFieldMap[it.name]!!, "", checkExist = true)
             }
         }
         return this
@@ -162,7 +162,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
      * @param srcColumn 源数据库的column
      * @param checkExist 是否检查TableField
      */
-    fun ktSelect(prop: KProperty1<*, *>, srcColumn: String, checkExist: Boolean = true): MPJKtQueryWrapper<T> {
+    fun ktSelect(prop: KProperty1<*, *>, srcColumn: String, checkExist: Boolean = false): MPJKtQueryWrapper<T> {
         if (checkExist) {
             val propInfo = propCache[prop] ?: return this
         }

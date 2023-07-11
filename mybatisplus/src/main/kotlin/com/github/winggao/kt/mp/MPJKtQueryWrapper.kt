@@ -15,24 +15,19 @@ import kotlin.reflect.jvm.javaField
  * 用于支持Kotlin的MPJQueryWrapper
  * 1. 支持Kotlin的Entity
  * 2. 支持TableLogic自动补全
+ *
+ * @param baseKC 底表的KClass
  */
 @Deprecated("WIP")
-class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
+class MPJKtQueryWrapper<T : Any>(baseKC: KClass<T>) : MPJQueryWrapper<T>() {
     private val tableAlias = HashMap<Class<*>, String>()
-    private val baseKClass: KClass<T>
+    private val baseKClass: KClass<T> = baseKC
     private val propCache = HashMap<KProperty<*>, KPropInfo>() //属性对应的表
 
-    /**
-     * @param baseKC 底表的KClass
-     */
-    constructor(baseKC: KClass<T>) : super() {
-        this.baseKClass = baseKC
-        this.entityClass = baseKC.java //传入底表
+    init {
+        this.entityClass = baseKC.java
         addAlias(baseKC, "t")
-
-        //基础表
         val table = TableInfoHelper.getTableInfo(this.entityClass)
-        //补全TableLogic
         if (table.isWithLogicDelete) this.eq(
             "t.${table.logicDeleteFieldInfo.column}",
             table.logicDeleteFieldInfo.logicNotDeleteValue
@@ -66,6 +61,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
             if (checkIgnore) return ""
             return p.name
         }
+        // MBP的分页插件无法区分where条件,所以需要手动加`it.setOptimizeJoinOfCountSql(false)`
         var col = if (withTable) {
             "${tableAlias[propInfo.parent.java]}.${propInfo.column}" //取别名
         } else "${propInfo.column}"
@@ -88,7 +84,7 @@ class MPJKtQueryWrapper<T : Any> : MPJQueryWrapper<T> {
         addAlias(t2, tAlias)
         //获取表原名
         val table = TableInfoHelper.getTableInfo(t2.java)
-        val sb = StringBuilder("${table.tableName} `${tAlias}` ON ")
+        val sb = StringBuilder("${table.tableName} ${tAlias} ON ")
         val cmp = MPJCompare(this)
         onMS(cmp)
         if (cmp.conditions.isEmpty()) throw Exception("onMS至少一个条件")
@@ -212,11 +208,6 @@ class MPJCompare(val wrapper: MPJKtQueryWrapper<*>) {
 
     fun `in`(column: KProperty1<*, *>, value: Any): MPJCompare {
         conditions.add(CompareItem(SqlKeyword.IN, column, value))
-        return this
-    }
-
-    fun addCondition(column: KProperty<*>, sqlKeyword: SqlKeyword, v: Any): MPJCompare {
-//        wrapper.eq()
         return this
     }
 

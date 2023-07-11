@@ -58,6 +58,8 @@ class TestEntityFull : TestEntity() {
 
     var e4: String? = null
 
+    var tableAlias: String? = null
+
 
     class E3 {
         var title3: String? = null

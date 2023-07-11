@@ -1,0 +1,141 @@
+package com.github.winggao.kt.spring3
+
+import org.slf4j.LoggerFactory
+
+/**
+ * 打印请求信息
+ */
+object RequestLoggerW {
+    val defaultLogger = LoggerFactory.getLogger(this.javaClass)
+
+    /**
+     * 创建打印filter
+     * @param logHeaders 打印header，emptyList(): 表示全部，listOf(x)表示只打印x
+     */
+    fun createFilter(
+        ctxFilter: (HttpServletRequestWrapper, HttpServletResponse) -> Boolean,
+        contentLengthLimit: Int = 500,
+        logHeaders: List<String>? = null,
+        logger: Logger = defaultLogger
+    ): OncePerRequestFilter {
+        return object : OncePerRequestFilter() {
+            override fun doFilterInternal(sReq: HttpServletRequest, sResp: HttpServletResponse, p2: FilterChain) {
+                val req = if (sReq is ContentCachingRequestWrapperUtf8) sReq else ContentCachingRequestWrapperUtf8(sReq)
+                val start = Date()
+                val needLog = ctxFilter(req, sResp)
+                if (needLog) {
+                    val sb = StringBuilder("Request: ${req.method.uppercase()} ${req.requestURI} contentLength=${req.contentLength} start")
+                    if (logHeaders != null) {
+                        sb.append("\nHeaders: ")
+                        if (logHeaders.isEmpty()) { //打印全部header
+                            req.headerNames.asSequence().forEach { sb.append(it, "=", req.getHeader(it), " ‖ ") }
+                        } else {
+                            logHeaders.forEach { val v = req.getHeader(it); if (!v.isNullOrEmpty()) sb.append(it, "=", v, " ‖ ") }
+                        }
+                    }
+                    // 获取请求
+                    req.queryString?.let { if (it.isNotEmpty()) sb.append("\nQuery: ", it) }
+                    if (req.contentLength > 0 && req.contentLength <= contentLengthLimit) {
+                        req.getParameter("_") //提前解析body
+                        val reg = Regex("\\s")
+                        sb.append(
+                            "\nBody: ", reg.replace(req.contentAsByteArray.decodeToString(), " "),
+                            reg.replace(req.reader.readText(), " ")
+                        )
+                        req.reader.mark(0)
+                        req.reader.reset()
+                        // 重置inputStream
+                        val cIps = ReflectUtil.getFieldValue(req, "cachedContent") as ByteArrayOutputStream
+                        val myServletInputStream = object : ServletInputStream() {
+                            val ips = ByteArrayInputStream(cIps.toByteArray())
+                            private var isEnd = false
+                            override fun read(): Int {
+                                return ips.read().also {
+                                    isEnd = it == -1
+                                }
+                            }
+
+                            override fun isFinished(): Boolean {
+                                return isEnd
+                            }
+
+                            override fun isReady(): Boolean {
+                                return true
+                            }
+
+                            override fun setReadListener(listener: ReadListener?) {
+                            }
+                        }
+                        ReflectUtil.setFieldValue(req, "inputStream", myServletInputStream)
+                    }
+                    logger.info(sb.toString())
+                    val rep = if (sResp is ContentCachingResponseWrapper) sResp else ContentCachingResponseWrapper(sResp)
+                    p2.doFilter(req, rep)
+                    val logBody = if (rep.contentType == MediaType.APPLICATION_OCTET_STREAM_VALUE) "二进制内容" else rep.contentAsByteArray.decodeToString()
+                    logger.info("Response: ${req.requestURI} ${sResp.status} end duration=${Date().time - start.time}ms\nbody: ${logBody}")
+                    rep.copyBodyToResponse()
+                } else {
+                    p2.doFilter(req, sResp)
+                }
+            }
+        }
+    }
+}
+
+class ContentCachingRequestWrapperUtf8(request: HttpServletRequest) : ContentCachingRequestWrapper(request) {
+    override fun getCharacterEncoding(): String {
+        val c = super.getCharacterEncoding()
+        return if (c == "ISO-8859-1") Charsets.UTF_8.name() else c
+    }
+}
+
+class ContentCachingRequestWrapperW(request: HttpServletRequest) : ContentCachingRequestWrapper(request) {
+    //    private val reader: BufferedReader? = null
+    private val superInputStream: ServletInputStream = super.getInputStream()
+    private var myInputStream: ByteArrayInputStream? = null
+    private val cachedContent by lazy {
+        val f = ReflectUtil.getField(ContentCachingRequestWrapper::class.java, "cachedContent")
+        ReflectUtil.getFieldValue(this, f) as ByteArrayOutputStream
+    }
+
+    override fun getInputStream(): ServletInputStream {
+        if (myInputStream == null) {
+            IoUtil.read(superInputStream) //这样会填充到cachedContent
+            myInputStream = ByteArrayInputStream(cachedContent.toByteArray())
+        }
+//        return myInputStream as ServletInputStream
+        return object : ServletInputStream() {
+            private var isEnd = false
+            private val ips = myInputStream!!
+            override fun read(): Int {
+                return ips.read().also {
+                    isEnd = it == -1
+                }
+            }
+
+            override fun isFinished(): Boolean {
+                return isEnd
+            }
+
+            override fun isReady(): Boolean {
+                return true
+            }
+
+            override fun setReadListener(listener: ReadListener?) {
+            }
+
+            override fun markSupported(): Boolean {
+                return ips.markSupported()
+            }
+
+            override fun mark(readlimit: Int) {
+                return ips.mark(readlimit)
+            }
+
+            override fun reset() {
+                return ips.reset()
+            }
+        }
+    }
+
+}

@@ -85,7 +85,7 @@ class MPJKtQueryWrapper<T : Any>(baseKC: KClass<T>) : MPJQueryWrapper<T>() {
         //获取表原名
         val table = TableInfoHelper.getTableInfo(t2.java)
         val sb = StringBuilder("${table.tableName} ${tAlias} ON ")
-        val cmp = MPJCompare(this)
+        val cmp = MPJCompare()
         onMS(cmp)
         if (cmp.conditions.isEmpty()) throw Exception("onMS至少一个条件")
         //补全TableLogic
@@ -99,7 +99,7 @@ class MPJKtQueryWrapper<T : Any>(baseKC: KClass<T>) : MPJQueryWrapper<T>() {
     }
 
     fun where(block: (MPJCompare) -> Unit): MPJKtQueryWrapper<T> {
-        val cmp = MPJCompare(this)
+        val cmp = MPJCompare()
         block(cmp)
         cmp.conditions.forEach { c ->
             this.appendSqlSegments(columnToSqlSegment(columnName(c.column)), c.op, { valueToStr(c.value) })
@@ -179,6 +179,11 @@ class MPJKtQueryWrapper<T : Any>(baseKC: KClass<T>) : MPJQueryWrapper<T>() {
         return this
     }
 
+    fun orderByAsc(vararg props: KProperty1<*, *>): MPJKtQueryWrapper<T> {
+        this.orderByAsc(props.map { columnName(it) })
+        return this
+    }
+
     fun orderByDesc(vararg props: KProperty1<*, *>): MPJKtQueryWrapper<T> {
         this.orderByDesc(props.map { columnName(it) })
         return this
@@ -194,15 +199,35 @@ class MPJKtQueryWrapper<T : Any>(baseKC: KClass<T>) : MPJQueryWrapper<T>() {
     }
 }
 
-class MPJCompare(val wrapper: MPJKtQueryWrapper<*>) {
+class MPJCompare() {
     val conditions = ArrayList<CompareItem<*, *>>()
     fun eq(column: KProperty1<*, *>, value: Any): MPJCompare {
         conditions.add(CompareItem(SqlKeyword.EQ, column, value))
         return this
     }
 
+    fun ne(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.NE, column, value))
+        return this
+    }
+
     fun ge(column: KProperty1<*, *>, value: Any): MPJCompare {
         conditions.add(CompareItem(SqlKeyword.GE, column, value))
+        return this
+    }
+
+    fun gt(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.GT, column, value))
+        return this
+    }
+
+    fun le(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.LE, column, value))
+        return this
+    }
+
+    fun lt(column: KProperty1<*, *>, value: Any): MPJCompare {
+        conditions.add(CompareItem(SqlKeyword.LT, column, value))
         return this
     }
 

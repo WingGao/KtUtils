@@ -63,26 +63,26 @@ subprojects {
     }
 
 
-    configure<PublishingExtension> {
-        val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
-
-        repositories {
-            maven {
-                isAllowInsecureProtocol = true
-                url = uri(properties.getOrDefault("repo", "") as String)
-                credentials {
-                    username = properties.get("mUser") as String?
-                    password = properties.get("mPwd") as String?
-                }
-            }
-        }
-        publications {
-            create<MavenPublication>("ppd") {
-                from(components["java"])
-            }
-        }
-    }
+//    configure<PublishingExtension> {
+//        val properties = Properties()
+//        properties.load(project.rootProject.file("local.properties").inputStream())
+//
+//        repositories {
+//            maven {
+//                isAllowInsecureProtocol = true
+//                url = uri(properties.getOrDefault("repo", "") as String)
+//                credentials {
+//                    username = properties.get("mUser") as String?
+//                    password = properties.get("mPwd") as String?
+//                }
+//            }
+//        }
+//        publications {
+//            create<MavenPublication>("ppd") {
+//                from(components["java"])
+//            }
+//        }
+//    }
     configure<SigningExtension> {
 //        signing {
 //            sign(publishing.publications["maven"])

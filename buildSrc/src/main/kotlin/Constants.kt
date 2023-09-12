@@ -36,7 +36,7 @@ object Constants {
     val mavenRepos = listOf(
         "https://maven.aliyun.com/repository/public",
 //        "http://mirrors.cloud.tencent.com/nexus/repository/maven-public/",
-        "http://maven.repo.ppdai.com/nexus/content/groups/public/",
+//        "http://maven.repo.ppdai.com/nexus/content/groups/public/",
         "https://jitpack.io",
         "https://maven.pkg.jetbrains.space/public/",
         "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers"

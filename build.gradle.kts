@@ -16,11 +16,12 @@ repositories {
     mavenLocal()
     Constants.mavenRepos.forEach { val mv = maven(it);mv.isAllowInsecureProtocol = true }
 }
-
-subprojects {
+allprojects {
     group = "com.github.WingGao.KtUtils"
     version = "0.1.5-SNAPSHOT"
+}
 
+subprojects {
     repositories {
         mavenLocal()
         Constants.mavenRepos.forEach { val mv = maven(it);mv.isAllowInsecureProtocol = true }
@@ -63,10 +64,10 @@ subprojects {
     }
 
 
-//    configure<PublishingExtension> {
-//        val properties = Properties()
+    configure<PublishingExtension> {
+        val properties = Properties()
 //        properties.load(project.rootProject.file("local.properties").inputStream())
-//
+
 //        repositories {
 //            maven {
 //                isAllowInsecureProtocol = true
@@ -77,12 +78,15 @@ subprojects {
 //                }
 //            }
 //        }
-//        publications {
-//            create<MavenPublication>("ppd") {
-//                from(components["java"])
-//            }
-//        }
-//    }
+        publications {
+            create<MavenPublication>("jitpack") {
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = project.version.toString()
+                from(components["java"])
+            }
+        }
+    }
     configure<SigningExtension> {
 //        signing {
 //            sign(publishing.publications["maven"])
